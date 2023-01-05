@@ -1,7 +1,7 @@
 package com.example.todolist;
 
 import android.content.Context;
-
+import androidx.annotation.NonNull;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,22 +12,21 @@ import java.util.ArrayList;
 
 public class FileHelper {
 
-    public static final String FILENAME = "listinfo.dat";
+    public static final String FILENAME = "listInfo.dat";
 
-    public static void writeData(ArrayList<String> item, Context context){
+    public static void writeData(ArrayList<String> item, @NonNull Context context) {
         try {
             FileOutputStream fos = context.openFileOutput(FILENAME, Context.MODE_PRIVATE);
             ObjectOutputStream oas = new ObjectOutputStream(fos);
             oas.writeObject(item);
             oas.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static ArrayList<String> readData(Context context){
+    @SuppressWarnings("unchecked")
+    public static ArrayList<String> readData(@NonNull Context context) {
         ArrayList<String> itemList = null;
         try {
             FileInputStream fis = context.openFileInput(FILENAME);
@@ -36,9 +35,7 @@ public class FileHelper {
         } catch (FileNotFoundException e) {
             itemList = new ArrayList<>();
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
 
