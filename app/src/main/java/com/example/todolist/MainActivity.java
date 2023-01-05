@@ -1,7 +1,7 @@
 package com.example.todolist;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -10,7 +10,7 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DialogFragment.DialogInterface {
 
     EditText item;
     Button add;
@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayAdapter<String> arrayAdapter;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -42,19 +42,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
         listView.setOnItemClickListener((adapterView, view, position, l) -> {
-            AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
-            alert.setTitle("Delete");
-            alert.setMessage("Do you want to delete this item from the list?");
-            alert.setCancelable(false);
-            alert.setNegativeButton("No", (dialogInterface, i) -> dialogInterface.cancel());
-            alert.setPositiveButton("Yes", (dialogInterface, i) -> {
-                itemList.remove(position);
-                arrayAdapter.notifyDataSetChanged();
-                FileHelper.writeData(itemList, getApplicationContext());
-            });
-
-            AlertDialog alertDialog = alert.create();
-            alertDialog.show();
+            new DialogFragment(position).show(getSupportFragmentManager(), DialogFragment.TAG);
         });
+    }
+
+    @Override
+    public void onDelete(int position) {
+        itemList.remove(position);
+        arrayAdapter.notifyDataSetChanged();
+        FileHelper.writeData(itemList, getApplicationContext());
     }
 }
