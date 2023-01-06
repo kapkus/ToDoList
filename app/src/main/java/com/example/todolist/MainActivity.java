@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,9 +37,11 @@ public class MainActivity extends AppCompatActivity implements MyRecyclerViewAda
             String itemName = item.getText().toString();
             itemList.add(itemName);
             item.setText("");
-            FileHelper.writeData(itemList, getApplicationContext());
-            System.out.println(itemList);
             recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.getItemCount() - 1);
+
+            Intent saveIntent = new Intent(this, ServiceSaver.class);
+            saveIntent.putStringArrayListExtra("itemList", itemList);
+            startService(saveIntent);
         });
 
     }

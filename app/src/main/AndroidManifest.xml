@@ -14,6 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ToDoList"
         tools:targetApi="31">
+        <service android:name=".ServiceSaver" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
