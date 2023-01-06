@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements MyRecyclerViewAda
             item.setText("");
             FileHelper.writeData(itemList, getApplicationContext());
             System.out.println(itemList);
-            recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.getItemCount()-1);
+            recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.getItemCount() - 1);
         });
 
     }
