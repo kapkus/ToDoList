@@ -1,22 +1,23 @@
 package com.example.todolist;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements DialogFragment.DialogInterface {
+public class MainActivity extends AppCompatActivity implements MyRecyclerViewAdapter.OnClickListener, DialogFragment.DialogInterface {
 
     EditText item;
     Button add;
-    ListView listView;
+    RecyclerView recyclerView;
     ArrayList<String> itemList = new ArrayList<>();
-    ArrayAdapter<String> arrayAdapter;
+    MyRecyclerViewAdapter recyclerViewAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -25,31 +26,33 @@ public class MainActivity extends AppCompatActivity implements DialogFragment.Di
 
         item = findViewById(R.id.editText);
         add = findViewById(R.id.button);
-        listView = findViewById(R.id.listView);
-
         itemList = FileHelper.readData(this);
-
-        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, itemList);
-
-        listView.setAdapter(arrayAdapter);
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewAdapter = new MyRecyclerViewAdapter(this, itemList);
+        recyclerView.setAdapter(recyclerViewAdapter);
 
         add.setOnClickListener(view -> {
             String itemName = item.getText().toString();
             itemList.add(itemName);
             item.setText("");
             FileHelper.writeData(itemList, getApplicationContext());
-            arrayAdapter.notifyDataSetChanged();
+            System.out.println(itemList);
+            recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.getItemCount()-1);
         });
 
-        listView.setOnItemClickListener((adapterView, view, position, l) -> {
-            new DialogFragment(position).show(getSupportFragmentManager(), DialogFragment.TAG);
-        });
+    }
+
+
+    @Override
+    public void onClick(int position) {
+        new DialogFragment(position).show(getSupportFragmentManager(), DialogFragment.TAG);
     }
 
     @Override
     public void onDelete(int position) {
         itemList.remove(position);
-        arrayAdapter.notifyDataSetChanged();
-        FileHelper.writeData(itemList, getApplicationContext());
+        recyclerViewAdapter.notifyItemRemoved(position);
+        FileHelper.writeData(itemList, this);
     }
 }
