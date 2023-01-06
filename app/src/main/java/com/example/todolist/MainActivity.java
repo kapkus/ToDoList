@@ -3,16 +3,19 @@ package com.example.todolist;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-
 import java.util.ArrayList;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements MyRecyclerViewAdapter.OnClickListener, DialogFragment.DialogInterface {
+
+    String FILE_NAME = "myData";
+    SharedPreferences sharedPreferences;
 
     EditText item;
     Button add;
@@ -27,7 +30,8 @@ public class MainActivity extends AppCompatActivity implements MyRecyclerViewAda
 
         item = findViewById(R.id.editText);
         add = findViewById(R.id.button);
-        itemList = FileHelper.readData(this);
+        //itemList = FileHelper.readData(this);
+        itemList = readSpData();
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewAdapter = new MyRecyclerViewAdapter(this, itemList);
@@ -46,6 +50,11 @@ public class MainActivity extends AppCompatActivity implements MyRecyclerViewAda
 
     }
 
+    private ArrayList<String> readSpData(){
+        sharedPreferences = this.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
+        Set<String> set = sharedPreferences.getStringSet("itemSet", null);
+        return new ArrayList<>(set);
+    }
 
     @Override
     public void onClick(int position) {
