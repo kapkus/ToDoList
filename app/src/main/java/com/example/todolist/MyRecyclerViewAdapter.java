@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -20,7 +21,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         void onClick(int position);
     }
 
-    private final ArrayList<String> itemList;
+    private final List<TaskData> itemList;
     private final LayoutInflater mInflater;
     private final ArrayList<String> urls;
     Context context;
@@ -30,7 +31,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         return position % 2 * 2;
     }
 
-    MyRecyclerViewAdapter(Context context, ArrayList<String> itemList) {
+    MyRecyclerViewAdapter(Context context, List<TaskData> itemList) {
         this.mInflater = LayoutInflater.from(context);
         this.context = context;
         this.itemList = itemList;
@@ -56,13 +57,28 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+        boolean hide = itemList.get(position).getDeleted();
         switch (holder.getItemViewType()) {
             case 0:
+                if(hide){
+                    holder.itemView.setVisibility(View.GONE);
+                    ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
+                    params.height = 0;
+                    params.width = 0;
+                    holder.itemView.setLayoutParams(params);
+                }
                 ViewHolder0 viewHolder0 = (ViewHolder0) holder;
-                String task = itemList.get(position);
+                String task = itemList.get(position).text;
                 viewHolder0.taskText.setText(task);
                 break;
             case 2:
+                if(hide){
+                    holder.itemView.setVisibility(View.GONE);
+                    ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
+                    params.height = 0;
+                    params.width = 0;
+                    holder.itemView.setLayoutParams(params);
+                }
                 ViewHolder2 viewHolder2 = (ViewHolder2) holder;
                 viewHolder2.webView.loadUrl(urls.get(position % 3));
                 break;
@@ -73,6 +89,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         TextView taskText;
         ImageView deleteIcon;
+        boolean hide;
 
         public ViewHolder0(View itemView) {
             super(itemView);
@@ -99,6 +116,16 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
                 ((MainActivity) context).onClick(getAdapterPosition());
             });
         }
+    }
+
+    public void addItem(TaskData task){
+        itemList.add(task);
+        notifyItemInserted(getItemCount() - 1);
+    }
+
+    public void hideItem(int position){
+        itemList.get(position).setDeleted(true);
+        notifyItemRemoved(position);
     }
 
     @Override
