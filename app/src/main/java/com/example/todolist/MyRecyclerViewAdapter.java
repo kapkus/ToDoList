@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,10 +20,13 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         void onClick(int position);
     }
 
-    private final List<TaskData> itemList;
+    private boolean showDeleted;
+    private List<TaskData> itemList;
     private final LayoutInflater mInflater;
     private final ArrayList<String> urls;
     Context context;
+    private final float scale;
+    private final static int webViewHeight = 150;
 
     @Override
     public int getItemViewType(int position) {
@@ -36,6 +38,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         this.context = context;
         this.itemList = itemList;
         this.urls = populateUrls();
+        this.scale = context.getResources().getDisplayMetrics().density;
     }
 
     @NonNull
@@ -58,29 +61,46 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         boolean hide = itemList.get(position).getDeleted();
+        ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
+
+        if(hide){
+            if(!showDeleted){
+                holder.itemView.setVisibility(View.GONE);
+                params.height = 0;
+                holder.itemView.setLayoutParams(params);
+                return;
+            }
+            holder.itemView.setBackgroundColor(context.getResources().getColor(R.color.gray_red));
+        }else{
+            holder.itemView.setBackgroundColor(context.getResources().getColor(R.color.light_gray));
+        }
+
         switch (holder.getItemViewType()) {
             case 0:
-                if(hide){
-                    holder.itemView.setVisibility(View.GONE);
-                    ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
-                    params.height = 0;
-                    params.width = 0;
-                    holder.itemView.setLayoutParams(params);
-                }
+                holder.itemView.setVisibility(View.VISIBLE);
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                holder.itemView.setLayoutParams(params);
                 ViewHolder0 viewHolder0 = (ViewHolder0) holder;
                 String task = itemList.get(position).text;
                 viewHolder0.taskText.setText(task);
+
+                if(hide){
+                    viewHolder0.restoreIcon.setVisibility(View.VISIBLE);
+                }else{
+                    viewHolder0.restoreIcon.setVisibility(View.GONE);
+                }
                 break;
             case 2:
-                if(hide){
-                    holder.itemView.setVisibility(View.GONE);
-                    ViewGroup.LayoutParams params = holder.itemView.getLayoutParams();
-                    params.height = 0;
-                    params.width = 0;
-                    holder.itemView.setLayoutParams(params);
-                }
+                holder.itemView.setVisibility(View.VISIBLE);
+                params.height = (int) (webViewHeight * scale + 0.5f);
+                holder.itemView.setLayoutParams(params);
                 ViewHolder2 viewHolder2 = (ViewHolder2) holder;
                 viewHolder2.webView.loadUrl(urls.get(position % 3));
+                if(hide){
+                    viewHolder2.restoreIcon.setVisibility(View.VISIBLE);
+                }else{
+                    viewHolder2.restoreIcon.setVisibility(View.GONE);
+                }
                 break;
         }
     }
@@ -89,7 +109,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         TextView taskText;
         ImageView deleteIcon;
-        boolean hide;
+        ImageView restoreIcon;
 
         public ViewHolder0(View itemView) {
             super(itemView);
@@ -98,6 +118,10 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             deleteIcon.setOnClickListener(view -> {
                 ((MainActivity) context).onClick(getAdapterPosition());
             });
+            restoreIcon = itemView.findViewById(R.id.restoreIcon);
+            restoreIcon.setOnClickListener(view -> {
+                restoreTask(getAdapterPosition());
+            });
         }
     }
 
@@ -105,6 +129,7 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
 
         WebView webView;
         ImageView deleteIcon;
+        ImageView restoreIcon;
 
         public ViewHolder2(View itemView) {
             super(itemView);
@@ -114,6 +139,10 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
             deleteIcon = itemView.findViewById(R.id.deleteIcon);
             deleteIcon.setOnClickListener(view -> {
                 ((MainActivity) context).onClick(getAdapterPosition());
+            });
+            restoreIcon = itemView.findViewById(R.id.restoreIcon);
+            restoreIcon.setOnClickListener(view -> {
+                restoreTask(getAdapterPosition());
             });
         }
     }
@@ -128,9 +157,31 @@ public class MyRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         notifyItemRemoved(position);
     }
 
+    public void sortList(char c){
+        itemList = FileHelper.sort(c);
+        notifyDataSetChanged();
+    }
+
+    public void showDeleted(boolean b) {
+        showDeleted = b;
+        notifyDataSetChanged();
+    }
+
+    private void restoreTask(int adapterPos){
+        int id = itemList.get(adapterPos).getId();
+        FileHelper.restoreTask(itemList, id);
+        notifyDataSetChanged();
+
+    }
+
     @Override
     public int getItemCount() {
         return itemList.size();
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
     }
 
     private ArrayList<String> populateUrls() {

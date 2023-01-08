@@ -1,7 +1,6 @@
 package com.example.todolist;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import com.google.gson.Gson;
@@ -19,9 +18,13 @@ import org.threeten.bp.LocalDateTime;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class FileHelper {
+
+    static Context mContext;
 
     public static final String FILENAME = "listInfo.json";
 
@@ -49,6 +52,7 @@ public class FileHelper {
     }
 
     public static List<TaskData> loadList(List<TaskData> taskList, String path){
+
         Type listType = new TypeToken<ArrayList<TaskData>>(){}.getType();
         Gson gson = new Gson();
         JsonReader reader;
@@ -65,6 +69,7 @@ public class FileHelper {
     }
 
     public static List<TaskData> loadList(Context context){
+        mContext = context;
         File directory = context.getFilesDir();
         String path = directory+"/"+FILENAME;
         Type listType = new TypeToken<ArrayList<TaskData>>(){}.getType();
@@ -101,7 +106,48 @@ public class FileHelper {
 
         tasks.get(id).setDeleted(true);
         saveListToJson(tasks, path);
-        Log.e("Deleted", "successfully");
+    }
+
+    public static List<TaskData> sort(char c){
+        File directory = mContext.getFilesDir();
+        String path = directory+"/"+FILENAME;
+
+        List<TaskData> readList = new ArrayList<>();
+        readList = loadList(readList, path);
+
+        // compare by chars
+        if(c == 'C')
+        {
+            Collections.sort(readList, new Comparator<TaskData>() {
+                @Override
+                public int compare(TaskData taskData1, TaskData taskData2) {
+                    return taskData1.getText().length() - taskData2.getText().length();
+                }
+            });
+            Collections.reverse(readList);
+
+        } // compare by dates
+        else if( c == 'D'){
+            Collections.sort(readList, new Comparator<TaskData>() {
+                @Override
+                public int compare(TaskData taskData1, TaskData taskData2) {
+                    return taskData1.getDate().compareTo(taskData2.getDate());
+                }
+            });
+        }
+
+        return readList;
+    }
+
+    public static void restoreTask(List<TaskData> taskList, int id) {
+        File directory = mContext.getFilesDir();
+        String path = directory+"/"+FILENAME;
+
+        taskList.get(id).setDeleted(false);
+        taskList.get(id).setDate(LocalDateTime.now());
+
+        saveListToJson(taskList, path);
+
     }
 
     @SuppressWarnings("unchecked")
@@ -121,4 +167,8 @@ public class FileHelper {
 
         return itemList;
     }
+
+
 }
+
+
